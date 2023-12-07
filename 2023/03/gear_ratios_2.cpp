@@ -6,29 +6,43 @@
 // accounting for \n
 #define COL_NUM 141
 
-size_t process_number(char *buffer, size_t pos) {
+size_t process_number(char *buffer, size_t pos, size_t *new_pos) {
     while (isdigit(buffer[pos - 1])) {
         pos--; // get to the first digit of the number
     }
     size_t number = 0;
     while (isdigit(buffer[pos])) {
         number = 10*number + buffer[pos] - '0';
-        buffer[pos] = '.'; // make sure we don't count numbers twice
         pos++;
     }
+    *new_pos = pos - 1; // new_pos is the position of the last digit found
     return number;
 }
 
 size_t find_neighbor_numbers(char *buffer, size_t pos) {
-    size_t partial_sum = 0;
-    for (int k = -1; k <= 1; k++) {
-        for (int l = -1; l <= 1; l++) {
-            if (isdigit(buffer[pos + k*COL_NUM + l])) {
-                partial_sum += process_number(buffer, pos + k*COL_NUM + l);
+    size_t gear_ratio = 1;
+    int numbers_found = 0;
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (isdigit(buffer[pos + i*COL_NUM + j])) {
+                numbers_found++;
+                if (numbers_found > 2) {
+                    return 0;
+                }
+                size_t new_pos = 0;
+                gear_ratio *= process_number(buffer, pos + i*COL_NUM + j, &new_pos);
+                if (new_pos == pos + i*COL_NUM + j) { // if finished at the same position
+                    j++; // next position is guaranteed to not have a number
+                } else {
+                    break; // there can't be another number in the same line
+                }
             }
         }
     }
-    return partial_sum;
+    if (numbers_found < 2) {
+        return 0;
+    }
+    return gear_ratio;
 }
 
 int main() {
@@ -46,8 +60,8 @@ int main() {
     for (size_t i = 0; i < LIN_NUM; i++) {
         for (size_t j = 0; j < COL_NUM; j++) {
             char c = buffer[i*COL_NUM + j];
-            if (c != '.' && c != '\n' && !isdigit(c)) {
-                // is a symbol: iterate through neighbors
+            if (c == '*') {
+                // is a star: iterate through neighbors
                 sum += find_neighbor_numbers(buffer, i*COL_NUM + j);
             }
         }
