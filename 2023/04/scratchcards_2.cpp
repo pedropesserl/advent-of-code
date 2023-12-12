@@ -4,12 +4,15 @@
 #include <vector>
 #include <algorithm>
 
-int main() {
-    size_t sum = 0;
+#define CARD_NUM 203
 
+int main() {
     std::ifstream file;
     std::string line;
     file.open("input");
+    
+    std::vector<int> multipliers(CARD_NUM, 1);
+    size_t i = 0;
     while (getline(file, line)) {
         std::stringstream stream_line(line);
         std::string token;
@@ -33,21 +36,26 @@ int main() {
 
         std::sort(have.begin(), have.end());
 
-        size_t points = 0;
+        size_t matches = 0;
         for (int w : winning) {
             if (std::binary_search(have.begin(), have.end(), w)) {
-                if (points == 0) {
-                    points = 1;
-                } else {
-                    points *= 2;
-                }
+                matches++;
             }
         }
-        
-        sum += points;
+
+        for (size_t j = 1; j <= matches; j++) {
+            multipliers[i + j] += multipliers[i];
+        }
+
+        i++;
     }
 
-    std::cout << sum << "\n";
+    size_t card_sum = 0;
+    for (int m : multipliers) {
+        card_sum += m;
+    }
+
+    std::cout << card_sum << "\n";
 
     return 0;
 }
